@@ -1,9 +1,7 @@
-# app.py
-from flask import Flask, render_template, request
+import streamlit as st
 import tensorflow as tf
 import numpy as np
-
-app = Flask(__name__)
+from sklearn.linear_model import LogisticRegression
 
 # Load your pre-trained TensorFlow model for accessibility analysis
 # Replace 'your_model_path' with the actual path to your model
@@ -16,24 +14,23 @@ accessibility_data = np.random.rand(100, 5)
 accessibility_labels = np.random.randint(2, size=(100,))
 
 # Train a simple logistic regression model for statistical analysis
-from sklearn.linear_model import LogisticRegression
 statistical_model = LogisticRegression()
 statistical_model.fit(accessibility_data, accessibility_labels)
 
-# Route for the main page
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Streamlit app
+st.title("Accessibility Analysis Tool")
 
-# Route for processing accessibility analysis
-@app.route('/analyze', methods=['POST'])
-def analyze():
-    # Get data from the form
-    user_input = [float(request.form['feature1']),
-                  float(request.form['feature2']),
-                  float(request.form['feature3']),
-                  float(request.form['feature4']),
-                  float(request.form['feature5'])]
+# Input form for user data
+st.header("Enter the Features for Analysis")
+feature1 = st.number_input("Feature 1", value=0.0, format="%.2f")
+feature2 = st.number_input("Feature 2", value=0.0, format="%.2f")
+feature3 = st.number_input("Feature 3", value=0.0, format="%.2f")
+feature4 = st.number_input("Feature 4", value=0.0, format="%.2f")
+feature5 = st.number_input("Feature 5", value=0.0, format="%.2f")
+
+# Analyze button
+if st.button("Analyze"):
+    user_input = [feature1, feature2, feature3, feature4, feature5]
 
     # Use TensorFlow model for accessibility prediction
     accessibility_prediction = model.predict(np.array([user_input]))
@@ -41,8 +38,7 @@ def analyze():
     # Use statistical model for additional insights
     statistical_prediction = statistical_model.predict(np.array([user_input]))
 
-    return render_template('result.html', accessibility_prediction=accessibility_prediction[0][0],
-                           statistical_prediction=statistical_prediction[0])
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    # Display results
+    st.subheader("Results")
+    st.write(f"Accessibility Prediction (TensorFlow Model): {accessibility_prediction[0][0]:.4f}")
+    st.write(f"Statistical Prediction (Logistic Regression): {statistical_prediction[0]}")
