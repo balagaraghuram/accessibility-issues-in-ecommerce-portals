@@ -2,10 +2,22 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 from sklearn.linear_model import LogisticRegression
+import os
 
 # Load your pre-trained TensorFlow model for accessibility analysis
-# Replace 'your_model_path' with the actual path to your model
-model = tf.keras.models.load_model('your_model_path')
+# Replace 'model.h5' with the actual path to your model
+MODEL_PATH = 'model.h5'
+
+try:
+    if os.path.exists(MODEL_PATH):
+        model = tf.keras.models.load_model(MODEL_PATH)
+        st.success("Model loaded successfully!")
+    else:
+        model = None
+        st.error("Model file not found. Please upload the correct 'model.h5' file.")
+except Exception as e:
+    model = None
+    st.error(f"Error loading model: {e}")
 
 # Dummy data for statistical analysis (replace with real data)
 # Here, we assume 'accessibility_data' contains relevant features for analysis
@@ -32,13 +44,19 @@ feature5 = st.number_input("Feature 5", value=0.0, format="%.2f")
 if st.button("Analyze"):
     user_input = [feature1, feature2, feature3, feature4, feature5]
 
-    # Use TensorFlow model for accessibility prediction
-    accessibility_prediction = model.predict(np.array([user_input]))
+    if model is not None:
+        # Use TensorFlow model for accessibility prediction
+        try:
+            accessibility_prediction = model.predict(np.array([user_input]))
+            st.write(f"Accessibility Prediction (TensorFlow Model): {accessibility_prediction[0][0]:.4f}")
+        except Exception as e:
+            st.error(f"Error making prediction with TensorFlow model: {e}")
+    else:
+        st.warning("TensorFlow model is not loaded. Skipping prediction.")
 
     # Use statistical model for additional insights
-    statistical_prediction = statistical_model.predict(np.array([user_input]))
-
-    # Display results
-    st.subheader("Results")
-    st.write(f"Accessibility Prediction (TensorFlow Model): {accessibility_prediction[0][0]:.4f}")
-    st.write(f"Statistical Prediction (Logistic Regression): {statistical_prediction[0]}")
+    try:
+        statistical_prediction = statistical_model.predict(np.array([user_input]))
+        st.write(f"Statistical Prediction (Logistic Regression): {statistical_prediction[0]}")
+    except Exception as e:
+        st.error(f"Error making prediction with statistical model: {e}")
